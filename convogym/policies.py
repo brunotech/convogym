@@ -237,12 +237,12 @@ class DQNPolicy(Policy):
             print()
             dataloader = DataLoader(memory_buffer, batch_size=64, shuffle=True)
             epoch_loss = []
-            for i, batch in enumerate(dataloader):#dataloader_old):
+            for batch in dataloader:
                 # get batch on buffer trajectories 
                 xx, y, q_targets = _process_dqn_batch(batch, self.policy, self.swa_policy, self.gamma)
                 # forward
                 yhat = self.policy(xx)   # logits
-                loss = self.huber_loss(yhat[torch.arange(len(y)),y], q_targets)      
+                loss = self.huber_loss(yhat[torch.arange(len(y)),y], q_targets)
                 # backward
                 self.policy.zero_grad()
                 loss.backward()

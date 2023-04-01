@@ -5,6 +5,7 @@ Created on Sat Aug 14 16:19:04 2021
 
 @author: af1tang
 """
+
 import os
 import warnings
 import random
@@ -18,13 +19,14 @@ eos_token = '<|endoftext|>'
 tr_df = pd.read_csv(os.path.join(opts.data_path, 'train_personas.csv'))
 te_df = pd.read_csv(os.path.join(opts.data_path, 'test_personas.csv'))
 
-train_personas = []
-for i, row in tr_df.iterrows():
-    train_personas.append([fact + eos_token for fact in row.dropna().tolist()])
-
-test_personas = []
-for i, row in te_df.iterrows():
-    test_personas.append([fact + eos_token for fact in row.dropna().tolist()])
+train_personas = [
+    [fact + eos_token for fact in row.dropna().tolist()]
+    for i, row in tr_df.iterrows()
+]
+test_personas = [
+    [fact + eos_token for fact in row.dropna().tolist()]
+    for i, row in te_df.iterrows()
+]
 
     
 # persona sampling functions 
@@ -97,7 +99,7 @@ def get_custom_persona(n=3, save_path=None, *args, **kwargs):
     personas = []
     for i in range(n):
         response = ""
-        while len(response) <1:
+        while not response:
             response = input(">> Fact %d: "%(i+1))+ eos_token
         personas.append(response)
     if save_path:
@@ -125,10 +127,11 @@ def get_random_persona(persona_list):
         A single set of persona facts (3-5) from a list of personas.
 
     """
-    if not persona_list:
-        return random.sample(train_personas, 1)[0]
-    else:
-        return random.sample(persona_list, 1)[0]
+    return (
+        random.sample(persona_list, 1)[0]
+        if persona_list
+        else random.sample(train_personas, 1)[0]
+    )
         
 
 def get_sequence_personas(persona_list):

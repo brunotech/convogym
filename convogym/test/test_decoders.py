@@ -17,7 +17,7 @@ def test_loading_model_tokenizer():
     
 def test_default_tokenizer():
     goal = "ask about hobbies."
-    inp = decoders.tokenizer.encode("<|act|>" + goal + "<|p1|><|sep|><|start|>")        
+    inp = decoders.tokenizer.encode(f"<|act|>{goal}<|p1|><|sep|><|start|>")
     assert inp == [50262, 2093, 546, 45578, 13, 50260, 50257, 50259]
     
     

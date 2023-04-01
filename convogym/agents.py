@@ -142,11 +142,10 @@ class Agent(object):
         """
         if action not in action_space:
             raise NotImplementedError("this action is not currently in the set of learned action space")
+        if self.reversed:
+            self.p2 = [action]
         else:
-            if self.reversed:
-                self.p2 = [action]
-            else:
-                self.p1 = [action]
+            self.p1 = [action]
     
     def _reset_inp(self, act = False):
         """
@@ -165,15 +164,19 @@ class Agent(object):
 
         """
         if not act:
-            if self.reversed:
-                self.inp = self.tokenizer.encode(''.join(['<|p1|>'] + self.p1 + ['<|sep|>'] + ['<|start|>']))
-            else:
-                self.inp = self.tokenizer.encode(''.join(['<|p2|>'] + self.p2 + ['<|sep|>'] + ['<|start|>']))
+            self.inp = (
+                self.tokenizer.encode(
+                    ''.join(['<|p1|>'] + self.p1 + ['<|sep|>'] + ['<|start|>'])
+                )
+                if self.reversed
+                else self.tokenizer.encode(
+                    ''.join(['<|p2|>'] + self.p2 + ['<|sep|>'] + ['<|start|>'])
+                )
+            )
+        elif self.reversed:
+            self.inp =  self.tokenizer.encode(''.join(['<|act|> '] + self.p2 + ['<|sep|>'] + ['<|p1|>'] + self.p2 + ['<|sep|>'] + ['<|start|>']))
         else:
-            if self.reversed:
-                self.inp =  self.tokenizer.encode(''.join(['<|act|> '] + self.p2 + ['<|sep|>'] + ['<|p1|>'] + self.p2 + ['<|sep|>'] + ['<|start|>']))
-            else:
-                self.inp =  self.tokenizer.encode(''.join(['<|act|> '] + self.p1 + ['<|sep|>'] + ['<|p1|>'] + self.p2 + ['<|sep|>'] + ['<|start|>']))
+            self.inp =  self.tokenizer.encode(''.join(['<|act|> '] + self.p1 + ['<|sep|>'] + ['<|p1|>'] + self.p2 + ['<|sep|>'] + ['<|start|>']))
         # incorporate dialog dx
         self.inp += flatten(self.dialog_history)
         self.inp, self.curr_len, self.past = to_var(torch.tensor([self.inp])), len(self.inp), None

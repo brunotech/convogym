@@ -80,9 +80,7 @@ def load_active_learning_convos(tokenizer, data_path):
     """
     df = pd.read_csv(data_path)
     X, y = df['X'].tolist(), df['y'].tolist()
-    # active learning data
-    active_data = list(zip(X,y))
-    return active_data
+    return list(zip(X,y))
 
 def load_imitation_learning_convos(tokenizer, data_path):
     """
@@ -110,9 +108,7 @@ def load_imitation_learning_convos(tokenizer, data_path):
     df = pd.read_csv(data_path)
     dialog_history = df['dialog_hx'].tolist()
     actions = df['actions'].tolist()
-    # imitation learning data
-    imitation_data = list(zip(dialog_history, actions))
-    return imitation_data
+    return list(zip(dialog_history, actions))
 
 def load_rl_convos(tokenizer, state_estimator, data_path):
     """
@@ -154,7 +150,7 @@ def load_rl_convos(tokenizer, state_estimator, data_path):
     for i, (convo, ep_actions, ep_rewards) in tqdm(list(zip(hx, actions, rewards)), total=len(df)):
         states, acts, rewards = [], [], [], []
         for turn in range(0,len(convo),2):
-            curr_hx = convo[0:turn]
+            curr_hx = convo[:turn]
             if len(curr_hx) == 0:
                 state = [0.0]*1025
             else:
@@ -167,7 +163,8 @@ def load_rl_convos(tokenizer, state_estimator, data_path):
             states.append(state)
 
         # batching
-        next_states = states[1:]; states = states[:-1]
+        next_states = states[1:]
+        states = states[:-1]
         next_acts = acts[1:] + [0]
         batch = list(zip(states, acts, next_states, next_acts, rewards))
         data.append(batch)
@@ -308,13 +305,13 @@ def _filter_personas(personas, uniques=None):
     if not uniques: 
         uniques = []
     filtered = []
-    
+
     for p in tqdm(personas, total=len(personas)):
         done, found = False, None
         i = 0
         while (not done) and len(uniques) > 0:
             p_cand_facts = set(uniques[i])
-            num_overlap = sum([1 for fact in p if fact in p_cand_facts])
+            num_overlap = sum(fact in p_cand_facts for fact in p)
             if num_overlap > 1:
                 done = True
                 found = uniques[i]
@@ -332,7 +329,7 @@ def _filter_personas(personas, uniques=None):
                                                 len(set(flatten(uniques)))
                                                                         )
           )
-        
+
     return uniques, filtered
 
 def _build_persona_batches(model, tokenizer, data):
@@ -547,8 +544,5 @@ def prepare_state_estim_dataset(model, tokenizer, data_path=None,
         pickle.dump(tr_data, f)
     with open(os.path.join(save_dir, 'test_state_estim_data'), 'wb') as f:
         pickle.dump(te_data, f)
-    if not return_data:
-        return persona_facts
-    else:
-        return tr_data, te_data
+    return (tr_data, te_data) if return_data else persona_facts
     

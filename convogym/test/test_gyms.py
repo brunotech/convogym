@@ -17,5 +17,5 @@ def test_self_play():
               reset_persona_func=get_random_persona, length=4)
     gym.sim_convos(num_convos=3)
     assert len(gym.data['hx']) == 3
-    assert sum([ len(gym.data['hx'][i]) for i in range(3)]) /2 ==12
+    assert sum(len(gym.data['hx'][i]) for i in range(3)) == 24
     

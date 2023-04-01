@@ -34,12 +34,13 @@ def _get_grouped_params(model, act_tok=50262, start_tok=50259,
         slow_group = [p for n,p in model.named_parameters() if n == 'transformer.wpe.weight']
         normal_group = [p for n,p in model.named_parameters() if n not in ('transformer.wte.weight',
                                                                            'transformer.wpe.weight')]
-    
-    optimizer_grouped_parameters = [{"params": fast_group, 'lr': 6.25e-4}, 
-                                    {"params": freeze_group, 'lr': 1e-6}, 
-                                    {"params": slow_group, 'lr': 1e-5}, 
-                                    {"params": normal_group, 'lr': 5e-5}]
-    return optimizer_grouped_parameters
+
+    return [
+        {"params": fast_group, 'lr': 6.25e-4},
+        {"params": freeze_group, 'lr': 1e-6},
+        {"params": slow_group, 'lr': 1e-5},
+        {"params": normal_group, 'lr': 5e-5},
+    ]
 
 class Learner(nn.Module):
     """

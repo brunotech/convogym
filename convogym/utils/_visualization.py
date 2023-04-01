@@ -13,9 +13,9 @@ def display_dialog_history(dialog_hx, tokenizer):
     for j, line in enumerate(dialog_hx):
         msg = tokenizer.decode(line)
         if j %2 == 0:
-            print(">> User: "+ msg)
+            print(f">> User: {msg}")
         else:
-            print("Bot: "+msg)
+            print(f"Bot: {msg}")
             print()
 
 def to_tokens(dialog_history, tokenizer):
@@ -28,7 +28,7 @@ def plot_losses(stats, title='loss'):
     loss = [stats[i][title] for i in x]
     plt.plot(x, loss, label= title)
     plt.legend()
-    plt.title("%s" %title)
+    plt.title(f"{title}")
     plt.tight_layout()
-    plt.savefig(os.path.join(opts.plot_path,'%s.png'%title))
+    plt.savefig(os.path.join(opts.plot_path, f'{title}.png'))
     plt.close()

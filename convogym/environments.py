@@ -44,8 +44,7 @@ class Env:
         """
         turn_tensor = to_var(torch.ones(1,1)) * scb.turn
         state = scb.state.view(1,-1)
-        state_t = torch.cat((state, turn_tensor), dim=-1)
-        return state_t
+        return torch.cat((state, turn_tensor), dim=-1)
     
     def get_curr_state(self, scb, mcb):
         """

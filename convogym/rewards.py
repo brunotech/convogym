@@ -97,10 +97,12 @@ class RankingLoss(nn.Module):
         """
         # generate candidates using negative sampling
         pos_targets, neg_targets = self._generate_candidates(candidates, positives)
-        # calculate ranking loss over candidates
-        loss = sum([self._calculate_loss(states[i].unsqueeze(0), pos_targets[i], neg_targets[i])
-                                for i in range(len(states))])
-        return loss
+        return sum(
+            self._calculate_loss(
+                states[i].unsqueeze(0), pos_targets[i], neg_targets[i]
+            )
+            for i in range(len(states))
+        )
     
     def score(self, states, positives, candidates):
         """
@@ -177,16 +179,14 @@ class RankingLoss(nn.Module):
         If use_recall then recall@k is used. Otherwise precision@k is used.
         """
         dist = nn.CosineSimilarity()
-        scores = []
-        for k,v in enumerate(pos):
-            scores.append((k,1, dist(x,v.unsqueeze(0)).item()))
-        for k,v in enumerate(neg):
-            scores.append((k+len(pos), 0, dist(x,v.unsqueeze(0)).item()))
+        scores = [(k,1, dist(x,v.unsqueeze(0)).item()) for k, v in enumerate(pos)]
+        scores.extend(
+            (k + len(pos), 0, dist(x, v.unsqueeze(0)).item())
+            for k, v in enumerate(neg)
+        )
         scores = sorted(scores, key = lambda x: x[-1], reverse=True)
-        picks = [s[1] for s in scores[0:at_k]]
-        # precision or recall @ k
-        score = sum(picks) / len(pos) if use_recall else sum(picks) / len(picks)
-        return score
+        picks = [s[1] for s in scores[:at_k]]
+        return sum(picks) / len(pos) if use_recall else sum(picks) / len(picks)
 
 # interface with gym callback objects
 class Reward:

@@ -142,7 +142,7 @@ def update_bn(loader, model, device=None):
 
     was_training = model.training
     model.train()
-    for module in momenta.keys():
+    for module in momenta:
         module.momentum = None
         module.num_batches_tracked *= 0
 
@@ -154,7 +154,7 @@ def update_bn(loader, model, device=None):
 
         model(input)
 
-    for bn_module in momenta.keys():
+    for bn_module in momenta:
         bn_module.momentum = momenta[bn_module]
     model.train(was_training)
 
@@ -201,30 +201,30 @@ class SWALR(_LRScheduler):
         for swa_lr, group in zip(swa_lrs, optimizer.param_groups):
             group['swa_lr'] = swa_lr
         if anneal_strategy not in ['cos', 'linear']:
-            raise ValueError("anneal_strategy must by one of 'cos' or 'linear', "
-                             "instead got {}".format(anneal_strategy))
+            raise ValueError(
+                f"anneal_strategy must by one of 'cos' or 'linear', instead got {anneal_strategy}"
+            )
         elif anneal_strategy == 'cos':
             self.anneal_func = self._cosine_anneal
         elif anneal_strategy == 'linear':
             self.anneal_func = self._linear_anneal
         if not isinstance(anneal_epochs, int) or anneal_epochs < 0:
-            raise ValueError("anneal_epochs must be equal or greater than 0, got {}".format(
-                             anneal_epochs)) 
+            raise ValueError(
+                f"anneal_epochs must be equal or greater than 0, got {anneal_epochs}"
+            )
         self.anneal_epochs = anneal_epochs
 
         super(SWALR, self).__init__(optimizer, last_epoch)
 
     @staticmethod
     def _format_param(optimizer, swa_lrs):
-        if isinstance(swa_lrs, (list, tuple)):
-            if len(swa_lrs) != len(optimizer.param_groups):
-                raise ValueError("swa_lr must have the same length as "
-                                 "optimizer.param_groups: swa_lr has {}, "
-                                 "optimizer.param_groups has {}".format(
-                                     len(swa_lrs), len(optimizer.param_groups)))
-            return swa_lrs
-        else:
+        if not isinstance(swa_lrs, (list, tuple)):
             return [swa_lrs] * len(optimizer.param_groups)
+        if len(swa_lrs) != len(optimizer.param_groups):
+            raise ValueError(
+                f"swa_lr must have the same length as optimizer.param_groups: swa_lr has {len(swa_lrs)}, optimizer.param_groups has {len(optimizer.param_groups)}"
+            )
+        return swa_lrs
 
     @staticmethod
     def _linear_anneal(t):
@@ -236,9 +236,7 @@ class SWALR(_LRScheduler):
 
     @staticmethod
     def _get_initial_lr(lr, swa_lr, alpha):
-        if alpha == 1:
-            return swa_lr
-        return (lr - alpha * swa_lr) / (1 - alpha)
+        return swa_lr if alpha == 1 else (lr - alpha * swa_lr) / (1 - alpha)
 
     def get_lr(self):
         if not self._get_lr_called_within_step:

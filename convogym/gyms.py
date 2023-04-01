@@ -175,8 +175,7 @@ class Gym:
         """
         if msg:
             print("Bot: {}".format(self.tokenizer.decode(msg, skip_special_tokens=True)))
-        outp = self.tokenizer.encode(input(">> User: ") + self.tokenizer.eos_token)
-        return outp
+        return self.tokenizer.encode(input(">> User: ") + self.tokenizer.eos_token)
     
     def _on_convo_begin(self, scb, mcb):
         """
@@ -410,7 +409,7 @@ class Gym:
         """
         print("Conducting conversations ...")
         print()
-        for i in range(num_convos):
+        for _ in range(num_convos):
             self._sim_convo(None, agent_personas, user_personas)
  
     def save_data(self, save_path):
@@ -733,9 +732,8 @@ class ActiveGym(Gym):
         None.
         
         """
-        al_data = self.data['X'], self.data['y']
         il_data = self.data['dialog_hx'], self.data['actions']
-        if al_data:
+        if (al_data := self.data['X'], self.data['y']):
             al_df = pd.DataFrame(al_data, columns=['X', 'y'])
             al_df.to_csv(os.path.join(save_dir, 'active_learning_data.csv'), index=False)
         if il_data:
